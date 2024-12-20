@@ -684,6 +684,17 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
 
   const callHook = createHookCaller(schema, scope, parser);
 
+  // 初始化 appHelper
+  addToScope(
+    scope,
+    AccessTypes.CONTEXT,
+    Object.keys(appHelper).reduce((res, key) => {
+      const globalKey = key.startsWith('$') ? key : '$' + key;
+      res[globalKey] = appHelper[key];
+      return res;
+    }, {}),
+  );
+
   callHook('initEmits');
   callHook('beforeCreate');
 
@@ -774,17 +785,6 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
     __loopRefIndex: null,
     __loopRefOffset: 0,
   });
-
-  // 初始化 appHelper
-  addToScope(
-    scope,
-    AccessTypes.CONTEXT,
-    Object.keys(appHelper).reduce((res, key) => {
-      const globalKey = key.startsWith('$') ? key : '$' + key;
-      res[globalKey] = appHelper[key];
-      return res;
-    }, {}),
-  );
 
   const unscopables = {
     _: true,
