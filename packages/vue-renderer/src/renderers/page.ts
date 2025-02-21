@@ -8,6 +8,7 @@ const Page = defineComponent((props, { slots }) => {
 export const PageRenderer = defineComponent({
   name: 'PageRenderer',
   props: rendererProps,
+  inheritAttrs: false, // 如果不设置，PageComponent的props设置表达式时，会被覆盖。
   __renderer__: true,
   setup(props, context) {
     const { scope, wrapRender } = useRootScope(props, context);
