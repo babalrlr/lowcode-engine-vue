@@ -622,7 +622,8 @@ export function useLeaf(
 
   const buildShow = (schema: NodeSchema, scope: RuntimeScope, isDesignMode: boolean) => {
     const hidden = isDesignMode ? schema.hidden ?? false : false;
-    const condition = schema.condition ?? true;
+    // 设计模式下，永远为真
+    const condition = isDesignMode ? true :schema.condition ?? true;
 
     if (hidden) return { scene: 'hidden', show: false };
     return {
@@ -701,7 +702,14 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
   // 处理 props
   callHook('initProps');
   if (propsSchema) {
-    const props = parser.parseOnlyJsValue<object>(propsSchema);
+    // schema 理解为设置默认值，优先取prop
+    const rawProps = parser.parseOnlyJsValue<object>(propsSchema);
+    // 低码组件的props，来源于父级组件赋值的prop，则需要获取 $attrs
+    const attrs = scope.$attrs as Record<string, any>;
+    const props = {};
+    for (const key in rawProps) {
+      props[key] = attrs[key] ?? rawProps[key];
+    }
     addToScope(scope, AccessTypes.PROPS, props);
   }
 
