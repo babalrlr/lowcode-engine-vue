@@ -3,6 +3,9 @@ import type { DocumentInstance, VueSimulatorRenderer } from './interface';
 import { defineComponent, h, renderSlot } from 'vue';
 import LowCodeRenderer from '@knxcloud/lowcode-vue-renderer';
 import { RouterView } from 'vue-router';
+import type { IPublicTypeComponentSchema } from '@alilc/lowcode-types';
+import { ProjectContext } from './simulator';
+import { deepMerge } from './utils';
 
 export const Layout = defineComponent({
   props: {
@@ -83,3 +86,72 @@ export const Renderer = defineComponent({
     });
   },
 });
+
+/**
+ * 过滤属性 
+ * 某个属性，会导致组件无法选择。没有排查，全部加上了
+*/
+const SKIP_KEY = {
+  $: true,
+  $el: true,
+  $data: true,
+  $props: true,
+  $attrs: true,
+  $slots: true,
+  // $refs: true,
+  $parent: true,
+  $root: true,
+  $host: true,
+  $emit: true,
+  $options: true,
+  $forceUpdate: true,
+  $nextTick: true,
+  $watch: true,
+};
+export const createComponent = (context: ProjectContext, simulator: VueSimulatorRenderer) => {
+  return (schema: IPublicTypeComponentSchema) => defineComponent({
+    name: schema.componentName,
+    setup(props, { attrs, expose }) {
+
+      /**
+       * 透传属性，父组件可执行子组件属性和方法
+       */
+      const componentRef = ref();
+      expose(
+        new Proxy(
+          {},
+          {
+            get: (_, key) => {
+              const target = componentRef?.value?.runtimeScope;
+              if (target) return Reflect.get(target, key);
+            },
+            set: (_, key, value) => {
+              const target = componentRef?.value?.runtimeScope;
+              if (target) return Reflect.set(target, key, value);
+              return false;
+            },
+            has: (_, key) => {
+              if (key in SKIP_KEY) return false;
+              return key in componentRef?.value?.runtimeScope;
+            },
+          }
+        )
+      );
+      
+      return () => h(LowCodeRenderer, {
+        ref: componentRef,
+        schema: structuredClone(schema), 
+        passProps: attrs, 
+        locale: simulator.locale,
+        device: simulator.device, 
+        messages:  deepMerge(context.i18n, Reflect.get(schema, 'i18n')),
+        appHelper: context.appHelper,
+        components: simulator.components, 
+        designMode: simulator.designMode, 
+        disableCompMock: simulator.disableCompMock, 
+        thisRequiredInJSE: simulator.thisRequiredInJSE, 
+        requestHandlersMap: simulator.requestHandlersMap,
+      });
+    },
+  });
+}

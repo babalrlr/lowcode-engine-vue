@@ -60,6 +60,7 @@ export interface VueSimulatorRenderer
   libraryMap: Record<string, string>;
   thisRequiredInJSE: boolean;
   autoRender: boolean;
+  components: Record<string, any>;
   componentsMap: Record<string, MixedComponent>;
   disableCompMock: boolean | string[];
   documentInstances: DocumentInstance[];

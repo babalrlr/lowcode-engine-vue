@@ -36,7 +36,7 @@ import {
   exportSchema,
   isArray,
 } from '@knxcloud/lowcode-utils';
-import { Renderer, SimulatorRendererView } from './simulator-view';
+import { createComponent, Renderer, SimulatorRendererView } from './simulator-view';
 import { Slot, Leaf, Page } from './buildin-components';
 import { host } from './host';
 import {
@@ -272,7 +272,7 @@ function createSimulatorRenderer() {
   function _buildComponents() {
     components.value = {
       ...builtinComponents,
-      ...buildComponents(libraryMap.value, componentsMap.value),
+      ...buildComponents(libraryMap.value, componentsMap.value, createComponent(context, simulator)),
     };
   }
 
