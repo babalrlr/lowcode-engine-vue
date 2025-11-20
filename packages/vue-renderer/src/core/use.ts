@@ -564,6 +564,7 @@ export function useLeaf(
     // 属性预处理
     const processed: Record<string, unknown> = {};
     Object.keys(propsSchema).forEach((propKey) => {
+      if (!isDesignMode && propKey.startsWith("__")) return;
       processProp(processed, propKey, propsSchema[propKey]);
     });
 
@@ -623,7 +624,7 @@ export function useLeaf(
   const buildShow = (schema: NodeSchema, scope: RuntimeScope, isDesignMode: boolean) => {
     const hidden = isDesignMode ? schema.hidden ?? false : false;
     // 设计模式下，永远为真
-    const condition = isDesignMode ? true :schema.condition ?? true;
+    const condition = isDesignMode ? true : schema.condition ?? true;
 
     if (hidden) return { scene: 'hidden', show: false };
     return {
@@ -914,9 +915,9 @@ export const buildSchema = (schema: NodeSchema, node?: INode | null) => {
 
 export const splitProps = createObjectSplitter(
   'key,ref,ref_for,ref_key,' +
-    'onVnodeBeforeMount,onVnodeMounted,' +
-    'onVnodeBeforeUpdate,onVnodeUpdated,' +
-    'onVnodeBeforeUnmount,onVnodeUnmounted',
+  'onVnodeBeforeMount,onVnodeMounted,' +
+  'onVnodeBeforeUpdate,onVnodeUpdated,' +
+  'onVnodeBeforeUnmount,onVnodeUnmounted',
 );
 
 export const splitLeafProps = createObjectSplitter(leafPropKeys);
